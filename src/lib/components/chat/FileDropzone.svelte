@@ -26,10 +26,7 @@
 							!mimeTypes.some((mimeType: string) => {
 								const [type, subtype] = mimeType.split("/");
 								const [fileType, fileSubtype] = file.type.split("/");
-								return (
-									(type === "*" || type === fileType) &&
-									(subtype === "*" || subtype === fileSubtype)
-								);
+								return type === fileType && (subtype === "*" || fileSubtype === subtype);
 							})
 						) {
 							setErrorMsg(`Some file type not supported. Only allowed: ${mimeTypes.join(", ")}`);

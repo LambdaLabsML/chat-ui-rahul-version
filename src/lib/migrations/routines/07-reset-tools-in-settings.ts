@@ -8,11 +8,12 @@ const resetTools: Migration = {
 	up: async () => {
 		const { settings } = collections;
 
-		await settings.updateMany({}, { $set: { tools: [] } });
+		await settings.updateMany({}, { $set: { tools: {} } });
 
 		return true;
 	},
 	runEveryTime: false,
+	runForHuggingChat: "only",
 };
 
 export default resetTools;

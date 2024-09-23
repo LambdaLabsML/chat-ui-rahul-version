@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { env as envPublic } from "$env/dynamic/public";
+	import CarbonEarth from "~icons/carbon/earth";
+	import CarbonArrowUpRight from "~icons/carbon/arrow-up-right";
 	import Logo from "$lib/components/icons/Logo.svelte";
 	import { createEventDispatcher } from "svelte";
 	import IconGear from "~icons/bi/gear-fill";
@@ -23,6 +25,8 @@
 		: [];
 
 	const dispatch = createEventDispatcher<{ message: string }>();
+
+	export let variant: "light" | "dark" = "light";
 </script>
 
 <div class="my-auto grid gap-8 lg:grid-cols-3">
@@ -34,7 +38,11 @@
 				<div
 					class="ml-3 flex h-6 items-center rounded-lg border border-gray-100 bg-gray-50 px-2 text-base text-gray-400 dark:border-gray-700/60 dark:bg-gray-800"
 				>
+				{#if false}
 					v{envPublic.PUBLIC_VERSION}
+				{:else}
+					Beta
+				{/if}
 				</div>
 			</div>
 			<p class="text-base text-gray-600 dark:text-gray-400">
@@ -55,6 +63,52 @@
 		{/each}
 		<div class="overflow-hidden rounded-xl border dark:border-gray-800">
 			<div class="flex p-3">
+{#if true}
+				<div>
+					<div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Thanks for trying Lambda Chat!</div>
+					<div class="items-center gap-1.5 max-sm:text-smd mb-4">
+						<div
+							class="flex items-center gap-5 rounded-xl bg-gray-100 px-3 py-2 text-xs sm:text-sm
+							{variant === 'dark'
+								? 'text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+								: 'text-gray-800 dark:bg-gray-100 dark:text-gray-600'}"
+						>
+							<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs text-gray-400" />
+							<div class="items-center">
+								<a class="inline-link" href="https://lambdalabs.com/blog/unveiling-hermes-3-the-first-fine-tuned-llama-3.1-405b-model-is-on-lambdas-cloud" target="_blank">Learn about Hermes 3, the first fine-tuned Llama 3.1 405B model</a>
+							</div>
+						</div>
+					</div>
+					<div class="items-center gap-1.5 max-sm:text-smd mb-4">
+						<div
+							class="flex items-center gap-5 rounded-xl bg-gray-100 px-3 py-2 text-xs sm:text-sm
+							{variant === 'dark'
+								? 'text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+								: 'text-gray-800 dark:bg-gray-100 dark:text-gray-600'}"
+						>
+							<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs text-gray-400" />
+							<div class="items-center">
+								Want to leverage up to 128k token context length for longer prompt inputs or integrate this model in your application today?
+								Go with our <a class="inline-link" href="https://docs.lambdalabs.com/on-demand-cloud/using-the-lambda-chat-completions-api" target="_blank">Chat API</a>!
+							</div>
+						</div>
+					</div>
+					<div class="items-center gap-1.5 max-sm:text-smd mb-4">
+						<div
+							class="flex items-center gap-5 rounded-xl bg-gray-100 px-3 py-2 text-xs sm:text-sm
+							{variant === 'dark'
+								? 'text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+								: 'text-gray-800 dark:bg-gray-100 dark:text-gray-600'}"
+						>
+							<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs text-gray-400" />
+							<div class="items-center">
+								Want your own private instance for maximum flexibility and performance?
+								<a class="inline-link" href="https://cloud.lambdalabs.com/sign-up" target="_blank">Get started now</a>
+							</div>
+						</div>
+					</div>
+				</div>
+{:else}
 				<div>
 					<div class="text-sm text-gray-600 dark:text-gray-400">Current Model</div>
 					<div class="flex items-center gap-1.5 font-semibold max-sm:text-smd">
@@ -75,6 +129,7 @@
 					class="btn ml-auto flex h-7 w-7 self-start rounded-full bg-gray-100 p-1 text-xs hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-600"
 					><IconGear /></a
 				>
+{/if}
 			</div>
 			<ModelCardMetadata variant="dark" model={currentModel} />
 		</div>
@@ -96,3 +151,16 @@
 		</div>{/if}
 	<div class="h-40 sm:h-24" />
 </div>
+
+<style>
+  .inline-link {
+    font-weight: 600;
+    display: inline;
+    text-decoration: none;
+    color: #D200B0;
+    cursor: pointer;
+  }
+  .inline-link:hover {
+    text-decoration: underline;
+  }
+</style>

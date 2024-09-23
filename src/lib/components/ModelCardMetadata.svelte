@@ -9,6 +9,7 @@
 	export let variant: "light" | "dark" = "light";
 </script>
 
+{#if false}
 <div
 	class="flex items-center gap-5 rounded-xl bg-gray-100 px-3 py-2 text-xs sm:text-sm
 	{variant === 'dark'
@@ -52,3 +53,4 @@
 		</a>
 	{/if}
 </div>
+{/if}

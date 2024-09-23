@@ -9,7 +9,6 @@ import type { Endpoint } from "../endpoints";
 import { z } from "zod";
 import type { Message } from "$lib/types/Message";
 import type { TextGenerationStreamOutput } from "@huggingface/inference";
-import { createImageProcessorOptionsValidator, makeImageProcessor } from "../images";
 
 export const endpointVertexParametersSchema = z.object({
 	weight: z.number().int().positive().default(1),
@@ -28,28 +27,10 @@ export const endpointVertexParametersSchema = z.object({
 		])
 		.optional(),
 	tools: z.array(z.any()).optional(),
-	multimodal: z
-		.object({
-			image: createImageProcessorOptionsValidator({
-				supportedMimeTypes: [
-					"image/png",
-					"image/jpeg",
-					"image/webp",
-					"image/avif",
-					"image/tiff",
-					"image/gif",
-				],
-				preferredMimeType: "image/webp",
-				maxSizeInMB: Infinity,
-				maxWidth: 4096,
-				maxHeight: 4096,
-			}),
-		})
-		.default({}),
 });
 
 export function endpointVertex(input: z.input<typeof endpointVertexParametersSchema>): Endpoint {
-	const { project, location, model, apiEndpoint, safetyThreshold, tools, multimodal } =
+	const { project, location, model, apiEndpoint, safetyThreshold, tools } =
 		endpointVertexParametersSchema.parse(input);
 
 	const vertex_ai = new VertexAI({
@@ -60,8 +41,6 @@ export function endpointVertex(input: z.input<typeof endpointVertexParametersSch
 
 	return async ({ messages, preprompt, generateSettings }) => {
 		const parameters = { ...model.parameters, ...generateSettings };
-
-		const hasFiles = messages.some((message) => message.files && message.files.length > 0);
 
 		const generativeModel = vertex_ai.getGenerativeModel({
 			model: model.id ?? model.name,
@@ -94,8 +73,7 @@ export function endpointVertex(input: z.input<typeof endpointVertexParametersSch
 				stopSequences: parameters?.stop,
 				temperature: parameters?.temperature ?? 1,
 			},
-			// tools and multimodal are mutually exclusive
-			tools: !hasFiles ? tools : undefined,
+			tools,
 		});
 
 		// Preprompt is the same as the first system message.
@@ -105,30 +83,16 @@ export function endpointVertex(input: z.input<typeof endpointVertexParametersSch
 			messages.shift();
 		}
 
-		const vertexMessages = await Promise.all(
-			messages.map(async ({ from, content, files }: Omit<Message, "id">): Promise<Content> => {
-				const imageProcessor = makeImageProcessor(multimodal.image);
-				const processedFiles =
-					files && files.length > 0
-						? await Promise.all(files.map(async (file) => imageProcessor(file)))
-						: [];
-
-				return {
-					role: from === "user" ? "user" : "model",
-					parts: [
-						...processedFiles.map((processedFile) => ({
-							inlineData: {
-								data: processedFile.image.toString("base64"),
-								mimeType: processedFile.mime,
-							},
-						})),
-						{
-							text: content,
-						},
-					],
-				};
-			})
-		);
+		const vertexMessages = messages.map(({ from, content }: Omit<Message, "id">): Content => {
+			return {
+				role: from === "user" ? "user" : "model",
+				parts: [
+					{
+						text: content,
+					},
+				],
+			};
+		});
 
 		const result = await generativeModel.generateContentStream({
 			contents: vertexMessages,

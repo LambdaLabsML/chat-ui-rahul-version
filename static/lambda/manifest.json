@@ -1,0 +1,24 @@
+{
+	"background_color": "#ffffff",
+	"name": "Lambda Chat",
+	"short_name": "Lambda Chat",
+	"display": "standalone",
+	"start_url": "/",
+	"icons": [
+		{
+			"src": "/lambda/lambda_logo_mark_black-100px.png",
+			"sizes": "100x100",
+			"type": "image/png"
+		},
+		{
+			"src": "/lambda/lambda_logo_mark_black-250px.png",
+			"sizes": "250x250",
+			"type": "image/png"
+		},
+		{
+			"src": "/lambda/lambda_logo_mark_black-500px.png",
+			"sizes": "500x500",
+			"type": "image/png"
+		}
+	]
+}

@@ -2,7 +2,7 @@ import { env } from "$env/dynamic/private";
 import { startOfHour } from "date-fns";
 import { authCondition, requiresUser } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
-import { models, validModelIdSchema } from "$lib/server/models";
+import { models } from "$lib/server/models";
 import { ERROR_MESSAGES } from "$lib/stores/errors";
 import type { Message } from "$lib/types/Message";
 import { error } from "@sveltejs/kit";
@@ -23,7 +23,6 @@ import { usageLimits } from "$lib/server/usageLimits";
 import { MetricsServer } from "$lib/server/metrics";
 import { textGeneration } from "$lib/server/textGeneration";
 import type { TextGenerationContext } from "$lib/server/textGeneration/types";
-import { logger } from "$lib/server/logger.js";
 
 export async function POST({ request, locals, params, getClientAddress }) {
 	const id = z.string().parse(params.id);
@@ -160,23 +159,12 @@ export async function POST({ request, locals, params, getClientAddress }) {
 			is_continue: z.optional(z.boolean()),
 			web_search: z.optional(z.boolean()),
 			tools: z
-				.array(z.string())
+				.record(z.boolean())
 				.optional()
 				.transform((tools) =>
 					// disable tools on huggingchat android app
-					request.headers.get("user-agent")?.includes("co.huggingface.chat_ui_android") ? [] : tools
+					request.headers.get("user-agent")?.includes("co.huggingface.chat_ui_android") ? {} : tools
 				),
-
-			files: z.optional(
-				z.array(
-					z.object({
-						type: z.literal("base64").or(z.literal("hash")),
-						name: z.string(),
-						value: z.string(),
-						mime: z.string(),
-					})
-				)
-			),
 		})
 		.parse(JSON.parse(json));
 
@@ -409,7 +397,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 				controller.enqueue(JSON.stringify(event) + "\n");
 
 				// Send 4096 of spaces to make sure the browser doesn't blocking buffer that holding the response
-				if (event.type === MessageUpdateType.FinalAnswer) {
+				if (event.type === "finalAnswer") {
 					controller.enqueue(" ".repeat(4096));
 				}
 			}
@@ -422,7 +410,6 @@ export async function POST({ request, locals, params, getClientAddress }) {
 
 			let hasError = false;
 			const initialMessageContent = messageToWriteTo.content;
-
 			try {
 				const ctx: TextGenerationContext = {
 					model,
@@ -432,7 +419,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 					assistant: undefined,
 					isContinue: isContinue ?? false,
 					webSearch: webSearch ?? false,
-					toolsPreference: toolsPreferences ?? [],
+					toolsPreference: toolsPreferences ?? {},
 					promptedAt,
 					ip: getClientAddress(),
 					username: locals.user?.username,
@@ -446,7 +433,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 					status: MessageUpdateStatus.Error,
 					message: (e as Error).message,
 				});
-				logger.error(e);
+				console.error(e);
 			} finally {
 				// check if no output was generated
 				if (!hasError && messageToWriteTo.content === initialMessageContent) {
@@ -513,11 +500,8 @@ export async function DELETE({ locals, params }) {
 }
 
 export async function PATCH({ request, locals, params }) {
-	const values = z
-		.object({
-			title: z.string().trim().min(1).max(100).optional(),
-			model: validModelIdSchema.optional(),
-		})
+	const { title } = z
+		.object({ title: z.string().trim().min(1).max(100) })
 		.parse(await request.json());
 
 	const convId = new ObjectId(params.id);
@@ -536,7 +520,9 @@ export async function PATCH({ request, locals, params }) {
 			_id: convId,
 		},
 		{
-			$set: values,
+			$set: {
+				title,
+			},
 		}
 	);
 

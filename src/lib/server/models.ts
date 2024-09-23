@@ -7,12 +7,12 @@ import { endpointTgi } from "./endpoints/tgi/endpointTgi";
 import { sum } from "$lib/utils/sum";
 import { embeddingModels, validateEmbeddingModelByName } from "./embeddingModels";
 
-import type { PreTrainedTokenizer } from "@huggingface/transformers";
+import type { PreTrainedTokenizer } from "@xenova/transformers";
 
 import JSON5 from "json5";
 import { getTokenizer } from "$lib/utils/getTokenizer";
 import { logger } from "$lib/server/logger";
-import { ToolResultStatus, type ToolInput } from "$lib/types/Tool";
+import { ToolResultStatus } from "$lib/types/Tool";
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
@@ -94,19 +94,16 @@ async function getChatPromptRender(
 		process.exit();
 	}
 
-	const renderTemplate = ({
-		messages,
-		preprompt,
-		tools,
-		toolResults,
-		continueMessage,
-	}: ChatTemplateInput) => {
+	const renderTemplate = ({ messages, preprompt, tools, toolResults }: ChatTemplateInput) => {
 		let formattedMessages: { role: string; content: string }[] = messages.map((message) => ({
-			content: message.content,
+			content:
+				message.files?.length && !tools?.length
+					? message.content + `\n This message has ${message.files.length} files attached`
+					: message.content,
 			role: message.from,
 		}));
 
-		if (preprompt && formattedMessages[0].role !== "system") {
+		if (preprompt) {
 			formattedMessages = [
 				{
 					role: "system",
@@ -198,39 +195,17 @@ async function getChatPromptRender(
 			);
 		});
 
-		const mappedTools =
-			tools?.map((tool) => {
-				const inputs: Record<
-					string,
-					{
-						type: ToolInput["type"];
-						description: string;
-						required: boolean;
-					}
-				> = {};
-
-				for (const value of tool.inputs) {
-					if (value.paramType !== "fixed") {
-						inputs[value.name] = {
-							type: value.type,
-							description: value.description ?? "",
-							required: value.paramType === "required",
-						};
-					}
-				}
-
-				return {
-					name: tool.name,
-					description: tool.description,
-					parameter_definitions: inputs,
-				};
-			}) ?? [];
-
 		const output = tokenizer.apply_chat_template(formattedMessages, {
 			tokenize: false,
-			add_generation_prompt: !continueMessage,
+			add_generation_prompt: true,
 			chat_template: chatTemplate,
-			tools: mappedTools,
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			tools:
+				tools?.map(({ parameterDefinitions, ...tool }) => ({
+					parameter_definitions: parameterDefinitions,
+					...tool,
+				})) ?? [],
 			documents,
 		});
 
@@ -284,8 +259,6 @@ const addEndpoint = (m: Awaited<ReturnType<typeof processModel>>) => ({
 						return endpoints.anthropic(args);
 					case "anthropic-vertex":
 						return endpoints.anthropicvertex(args);
-					case "bedrock":
-						return endpoints.bedrock(args);
 					case "aws":
 						return await endpoints.aws(args);
 					case "openai":
@@ -320,9 +293,6 @@ export const models: ProcessedModel[] = await Promise.all(
 	modelsRaw.map((e) => processModel(e).then(addEndpoint))
 );
 
-// super ugly but not sure how to make typescript happier
-export const validModelIdSchema = z.enum(models.map((m) => m.id) as [string, ...string[]]);
-
 export const defaultModel = models[0];
 
 // Models that have been deprecated
@@ -333,7 +303,6 @@ export const oldModels = env.OLD_MODELS
 					id: z.string().optional(),
 					name: z.string().min(1),
 					displayName: z.string().min(1).optional(),
-					transferTo: validModelIdSchema.optional(),
 				})
 			)
 			.parse(JSON5.parse(env.OLD_MODELS))

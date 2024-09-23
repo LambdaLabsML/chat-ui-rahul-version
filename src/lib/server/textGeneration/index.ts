@@ -8,7 +8,7 @@ import {
 	getAssistantById,
 	processPreprompt,
 } from "./assistant";
-import { getTools, runTools } from "./tools";
+import { pickTools, runTools } from "./tools";
 import type { WebSearch } from "$lib/types/WebSearch";
 import {
 	type MessageUpdate,
@@ -20,32 +20,17 @@ import { mergeAsyncGenerators } from "$lib/utils/mergeAsyncGenerators";
 import type { TextGenerationContext } from "./types";
 import type { ToolResult } from "$lib/types/Tool";
 import { toolHasName } from "../tools/utils";
-
-async function* keepAlive(done: AbortSignal): AsyncGenerator<MessageUpdate, undefined, undefined> {
-	while (!done.aborted) {
-		yield {
-			type: MessageUpdateType.Status,
-			status: MessageUpdateStatus.KeepAlive,
-		};
-		await new Promise((resolve) => setTimeout(resolve, 5000));
-	}
-}
+import directlyAnswer from "../tools/directlyAnswer";
 
 export async function* textGeneration(ctx: TextGenerationContext) {
-	const done = new AbortController();
-
-	const titleGen = generateTitleForConversation(ctx.conv);
-	const textGen = textGenerationWithoutTitle(ctx, done);
-	const keepAliveGen = keepAlive(done.signal);
-
-	// keep alive until textGen is done
-
-	yield* mergeAsyncGenerators([titleGen, textGen, keepAliveGen]);
+	yield* mergeAsyncGenerators([
+		textGenerationWithoutTitle(ctx),
+		generateTitleForConversation(ctx.conv),
+	]);
 }
 
 async function* textGenerationWithoutTitle(
-	ctx: TextGenerationContext,
-	done: AbortController
+	ctx: TextGenerationContext
 ): AsyncGenerator<MessageUpdate, undefined, undefined> {
 	yield {
 		type: MessageUpdateType.Status,
@@ -77,13 +62,12 @@ async function* textGenerationWithoutTitle(
 
 	let toolResults: ToolResult[] = [];
 
-	if (model.tools) {
-		const tools = await getTools(toolsPreference, ctx.assistant);
-		const toolCallsRequired = tools.some((tool) => !toolHasName("directly_answer", tool));
+	if (model.tools && !conv.assistantId) {
+		const tools = pickTools(toolsPreference, Boolean(assistant));
+		const toolCallsRequired = tools.some((tool) => !toolHasName(directlyAnswer.name, tool));
 		if (toolCallsRequired) toolResults = yield* runTools(ctx, tools, preprompt);
 	}
 
 	const processedMessages = await preprocessMessages(messages, webSearchResult, convId);
 	yield* generate({ ...ctx, messages: processedMessages }, toolResults, preprompt);
-	done.abort();
 }

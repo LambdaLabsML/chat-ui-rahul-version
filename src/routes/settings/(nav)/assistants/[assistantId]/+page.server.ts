@@ -63,8 +63,7 @@ export const actions: Actions = {
 		// is there already a report from this user for this model ?
 		const report = await collections.reports.findOne({
 			createdBy: locals.user?._id ?? locals.sessionId,
-			object: "assistant",
-			contentId: new ObjectId(params.assistantId),
+			assistantId: new ObjectId(params.assistantId),
 		});
 
 		if (report) {
@@ -80,8 +79,7 @@ export const actions: Actions = {
 
 		const { acknowledged } = await collections.reports.insertOne({
 			_id: new ObjectId(),
-			contentId: new ObjectId(params.assistantId),
-			object: "assistant",
+			assistantId: new ObjectId(params.assistantId),
 			createdBy: locals.user?._id ?? locals.sessionId,
 			createdAt: new Date(),
 			updatedAt: new Date(),
@@ -196,30 +194,5 @@ export const actions: Actions = {
 		}
 
 		return { from: "unfeature", ok: true, message: "Assistant unfeatured" };
-	},
-
-	feature: async ({ params, locals }) => {
-		if (!locals.user?.isAdmin) {
-			return fail(403, { error: true, message: "Permission denied" });
-		}
-
-		const assistant = await collections.assistants.findOne({
-			_id: new ObjectId(params.assistantId),
-		});
-
-		if (!assistant) {
-			return fail(404, { error: true, message: "Assistant not found" });
-		}
-
-		const result = await collections.assistants.updateOne(
-			{ _id: assistant._id },
-			{ $set: { featured: true } }
-		);
-
-		if (result.modifiedCount === 0) {
-			return fail(500, { error: true, message: "Failed to feature assistant" });
-		}
-
-		return { from: "feature", ok: true, message: "Assistant featured" };
 	},
 };

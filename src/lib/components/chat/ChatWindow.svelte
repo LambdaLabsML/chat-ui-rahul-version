@@ -35,7 +35,6 @@
 	import UploadedFile from "./UploadedFile.svelte";
 	import { useSettingsStore } from "$lib/stores/settings";
 	import type { ToolFront } from "$lib/types/Tool";
-	import ModelSwitch from "./ModelSwitch.svelte";
 
 	export let messages: Message[] = [];
 	export let loading = false;
@@ -109,55 +108,6 @@
 
 	const convTreeStore = useConvTreeStore();
 
-	const updateCurrentIndex = () => {
-		const url = new URL($page.url);
-		let leafId = url.searchParams.get("leafId");
-
-		// Ensure the function is only run in the browser.
-		if (!browser) return;
-
-		if (leafId) {
-			// Remove the 'leafId' from the URL to clean up after retrieving it.
-			url.searchParams.delete("leafId");
-			history.replaceState(null, "", url.toString());
-		} else {
-			// Retrieve the 'leafId' from localStorage if it's not in the URL.
-			leafId = localStorage.getItem("leafId");
-		}
-
-		// If a 'leafId' exists, find the corresponding message and update indices.
-		if (leafId) {
-			let leafMessage = messages.find((m) => m.id == leafId);
-			if (!leafMessage?.ancestors) return; // Exit if the message has no ancestors.
-
-			let ancestors = leafMessage.ancestors;
-
-			// Loop through all ancestors to update the current child index.
-			for (let i = 0; i < ancestors.length; i++) {
-				let curMessage = messages.find((m) => m.id == ancestors[i]);
-				if (curMessage?.children) {
-					for (let j = 0; j < curMessage.children.length; j++) {
-						// Check if the current message's child matches the next ancestor
-						// or the leaf itself, and update the currentChildIndex accordingly.
-						if (i + 1 < ancestors.length) {
-							if (curMessage.children[j] == ancestors[i + 1]) {
-								curMessage.currentChildIndex = j;
-								break;
-							}
-						} else {
-							if (curMessage.children[j] == leafId) {
-								curMessage.currentChildIndex = j;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	};
-
-	updateCurrentIndex();
-
 	$: lastMessage = browser && (messages.find((m) => m.id == $convTreeStore.leaf) as Message);
 	$: lastIsError =
 		lastMessage &&
@@ -205,8 +155,8 @@
 	const settings = useSettingsStore();
 
 	// active tools are all the checked tools, either from settings or on by default
-	$: activeTools = $page.data.tools.filter((tool: ToolFront) =>
-		$settings?.tools?.includes(tool._id)
+	$: activeTools = $page.data.tools.filter(
+		(tool: ToolFront) => $settings?.tools?.[tool.name] ?? tool.isOnByDefault
 	);
 	$: activeMimeTypes = [
 		...(!$page.data?.assistant && currentModel.tools
@@ -280,9 +230,6 @@
 						on:vote
 						on:continue
 					/>
-					{#if isReadOnly}
-						<ModelSwitch {models} {currentModel} />
-					{/if}
 				</div>
 			{:else if pending}
 				<ChatMessage
@@ -397,7 +344,7 @@
 				aria-label={isFileUploadEnabled ? "file dropzone" : undefined}
 				on:submit|preventDefault={handleSubmit}
 				class="relative flex w-full max-w-4xl flex-1 items-center rounded-xl border bg-gray-100 focus-within:border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:focus-within:border-gray-500
-            {isReadOnly ? 'opacity-30' : ''}"
+			{isReadOnly ? 'opacity-30' : ''}"
 			>
 				{#if onDrag && isFileUploadEnabled}
 					<FileDropzone bind:files bind:onDrag mimeTypes={activeMimeTypes} />
@@ -407,7 +354,9 @@
 							<ChatInput value="Sorry, something went wrong. Please try again." disabled={true} />
 						{:else}
 							<ChatInput
-								placeholder={isReadOnly ? "This conversation is read-only." : "Ask anything"}
+								placeholder={isReadOnly
+									? "This conversation is read-only. Start a new one to continue!"
+									: "Ask anything"}
 								bind:value={message}
 								on:submit={handleSubmit}
 								on:beforeinput={(ev) => {
@@ -449,6 +398,7 @@
 			<div
 				class="mt-2 flex justify-between self-stretch px-1 text-xs text-gray-400/90 max-md:mb-2 max-sm:gap-2"
 			>
+{#if false}
 				<p>
 					Model:
 					{#if !assistant}
@@ -480,7 +430,13 @@
 					<span class="max-sm:hidden">·</span><br class="sm:hidden" /> Generated content may be inaccurate
 					or false.
 				</p>
-				{#if messages.length}
+{:else}
+				<p>
+					<a href="https://lambdalabs.com/legal/terms-of-service" class="inline-flex items-center hover:underline">Privacy and Terms</a>
+				</p>
+
+{/if}
+				{#if false && messages.length}
 					<button
 						class="flex flex-none items-center hover:text-gray-400 max-sm:rounded-lg max-sm:bg-gray-50 max-sm:px-2.5 dark:max-sm:bg-gray-800"
 						type="button"

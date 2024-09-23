@@ -41,14 +41,11 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 	const { value, mime } = await downloadFile(sha256, params.id);
 
-	const b64Value = Buffer.from(value, "base64");
-	return new Response(b64Value, {
+	return new Response(Buffer.from(value, "base64"), {
 		headers: {
 			"Content-Type": mime ?? "application/octet-stream",
 			"Content-Security-Policy":
 				"default-src 'none'; script-src 'none'; style-src 'none'; sandbox;",
-			"Content-Length": b64Value.length.toString(),
-			"Accept-Range": "bytes",
 		},
 	});
 };

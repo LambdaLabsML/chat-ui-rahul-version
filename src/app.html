@@ -2,6 +2,17 @@
 <html lang="en" class="h-full">
 	<head>
 		<meta charset="utf-8" />
+
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="https://lambdalabs.com/hubfs/1.%20Branding%20(Lambda)/Lambda%20Logos/lambda_favicon.png">
+
+		<!-- Google Tag Manager -->
+		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+			new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+							j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+							'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+					})(window,document,'script','dataLayer','GTM-NZ5JKG2');</script>
+		<!-- End Google Tag Manager -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<meta name="theme-color" content="rgb(249, 250, 251)" />
 		<script>
@@ -16,32 +27,19 @@
 			}
 
 			// For some reason, Sveltekit doesn't let us load env variables from .env here, so we load it from hooks.server.ts
-			window.gaId = "%gaId%";
 		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover" class="h-full dark:bg-gray-900">
+		<!-- Google Tag Manager (noscript) -->
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NZ5JKG2"
+				  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		<!-- End Google Tag Manager (noscript) -->
+
 		<div id="app" class="contents h-full">%sveltekit.body%</div>
 
-		<!-- Google Tag Manager -->
-		<script>
-			if (window.gaId) {
-				const script = document.createElement("script");
-				script.src = "https://www.googletagmanager.com/gtag/js?id=" + window.gaId;
-				script.async = true;
-				document.head.appendChild(script);
-
-				window.dataLayer = window.dataLayer || [];
-				function gtag() {
-					dataLayer.push(arguments);
-				}
-				gtag("js", new Date());
-				/// ^ See https://developers.google.com/tag-platform/gtagjs/install
-				gtag("config", window.gaId);
-				gtag("consent", "default", { ad_storage: "denied", analytics_storage: "denied" });
-				/// ^ See https://developers.google.com/tag-platform/gtagjs/reference#consent
-				/// TODO: ask the user for their consent and update this with gtag('consent', 'update')
-			}
-		</script>
+		<!-- Start of HubSpot Embed Code -->
+		<script type="text/javascript" id="hs-script-loader" async defer src="//js.hs-scripts.com/21998649.js"></script>
+		<!-- End of HubSpot Embed Code -->
 	</body>
 </html>

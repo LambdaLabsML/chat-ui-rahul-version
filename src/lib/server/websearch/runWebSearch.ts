@@ -18,7 +18,6 @@ import {
 } from "./update";
 import { mergeAsyncGenerators } from "$lib/utils/mergeAsyncGenerators";
 import { MetricsServer } from "../metrics";
-import { logger } from "$lib/server/logger";
 
 const MAX_N_PAGES_TO_SCRAPE = 8 as const;
 const MAX_N_PAGES_TO_EMBED = 5 as const;
@@ -87,7 +86,7 @@ export async function* runWebSearch(
 		return webSearch;
 	} catch (searchError) {
 		const message = searchError instanceof Error ? searchError.message : String(searchError);
-		logger.error(message);
+		console.error(message);
 		yield makeErrorUpdate({ message: "An error occurred", args: [message] });
 
 		const webSearch: WebSearch = {

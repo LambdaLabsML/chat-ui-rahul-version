@@ -8,9 +8,8 @@ import { DEFAULT_SETTINGS } from "$lib/types/Settings";
 import { env } from "$env/dynamic/private";
 import { ObjectId } from "mongodb";
 import type { ConvSidebar } from "$lib/types/ConvSidebar";
-import { toolFromConfigs } from "$lib/server/tools";
+import { allTools } from "$lib/server/tools";
 import { MetricsServer } from "$lib/server/metrics";
-import type { ToolFront, ToolInputFile } from "$lib/types/Tool";
 
 export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 	depends(UrlDependency.ConversationList);
@@ -108,25 +107,6 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 	}
 
 	const toolUseDuration = (await MetricsServer.getMetrics().tool.toolUseDuration.get()).values;
-
-	const configToolIds = toolFromConfigs.map((el) => el._id.toString());
-
-	const activeCommunityToolIds = (settings?.tools ?? []).filter(
-		(key) => !configToolIds.includes(key)
-	);
-
-	const communityTools = await collections.tools
-		.find({ _id: { $in: activeCommunityToolIds.map((el) => new ObjectId(el)) } })
-		.toArray()
-		.then((tools) =>
-			tools.map((tool) => ({
-				...tool,
-				isHidden: false,
-				isOnByDefault: true,
-				isLocked: true,
-			}))
-		);
-
 	return {
 		conversations: conversations.map((conv) => {
 			if (settings?.hideEmojiOnSidebar) {
@@ -155,8 +135,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 				env.SEARCHAPI_KEY ||
 				env.YDC_API_KEY ||
 				env.USE_LOCAL_WEBSEARCH ||
-				env.SEARXNG_QUERY_URL ||
-				env.BING_SUBSCRIPTION_KEY
+				env.SEARXNG_QUERY_URL
 			),
 			ethicsModalAccepted: !!settings?.ethicsModalAcceptedAt,
 			ethicsModalAcceptedAt: settings?.ethicsModalAcceptedAt ?? null,
@@ -167,11 +146,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 				DEFAULT_SETTINGS.shareConversationsWithModelAuthors,
 			customPrompts: settings?.customPrompts ?? {},
 			assistants: userAssistants,
-			tools:
-				settings?.tools ??
-				toolFromConfigs
-					.filter((el) => !el.isHidden && el.isOnByDefault)
-					.map((el) => el._id.toString()),
+			tools: settings?.tools ?? {},
 			disableStream: settings?.disableStream ?? DEFAULT_SETTINGS.disableStream,
 		},
 		models: models.map((model) => ({
@@ -196,29 +171,19 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 			unlisted: model.unlisted,
 		})),
 		oldModels,
-		tools: [...toolFromConfigs, ...communityTools]
-			.filter((tool) => !tool?.isHidden)
-			.map(
-				(tool) =>
-					({
-						_id: tool._id.toString(),
-						type: tool.type,
-						displayName: tool.displayName,
-						name: tool.name,
-						description: tool.description,
-						mimeTypes: (tool.inputs ?? [])
-							.filter((input): input is ToolInputFile => input.type === "file")
-							.map((input) => (input as ToolInputFile).mimeTypes)
-							.flat(),
-						isOnByDefault: tool.isOnByDefault ?? true,
-						isLocked: tool.isLocked ?? true,
-						timeToUseMS:
-							toolUseDuration.find(
-								(el) => el.labels.tool === tool._id.toString() && el.labels.quantile === 0.9
-							)?.value ?? 15_000,
-					} satisfies ToolFront)
-			),
-		communityToolCount: await collections.tools.countDocuments({ type: "community" }),
+		tools: allTools
+			.filter((tool) => !tool.isHidden)
+			.map((tool) => ({
+				name: tool.name,
+				displayName: tool.displayName,
+				description: tool.description,
+				mimeTypes: tool.mimeTypes,
+				isOnByDefault: tool.isOnByDefault,
+				isLocked: tool.isLocked,
+				timeToUseMS:
+					toolUseDuration.find((el) => el.labels.tool === tool.name && el.labels.quantile === 0.9)
+						?.value ?? 15_000,
+			})),
 		assistants: assistants
 			.filter((el) => userAssistantsSet.has(el._id.toString()))
 			.map((el) => ({
@@ -240,7 +205,6 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 		assistant,
 		enableAssistants,
 		enableAssistantsRAG: env.ENABLE_ASSISTANTS_RAG === "true",
-		enableCommunityTools: env.COMMUNITY_TOOLS === "true",
 		loginRequired,
 		loginEnabled: requiresUser,
 		guestMode: requiresUser && messagesBeforeLogin > 0,

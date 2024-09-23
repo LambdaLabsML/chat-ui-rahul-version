@@ -21,7 +21,7 @@ export interface Settings extends Timestamps {
 	customPrompts?: Record<string, string>;
 
 	assistants?: Assistant["_id"][];
-	tools?: string[];
+	tools?: Record<string, boolean>;
 	disableStream: boolean;
 }
 
@@ -33,6 +33,6 @@ export const DEFAULT_SETTINGS = {
 	hideEmojiOnSidebar: false,
 	customPrompts: {},
 	assistants: [],
-	tools: [],
+	tools: {},
 	disableStream: false,
 } satisfies SettingsEditable;
