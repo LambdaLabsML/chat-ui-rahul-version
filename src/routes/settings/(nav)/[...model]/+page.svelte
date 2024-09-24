@@ -77,20 +77,20 @@
 				Model website
 			</a>
 		{/if}
-		<CopyToClipBoardBtn
+		<!-- <CopyToClipBoardBtn
 			value="{envPublic.PUBLIC_ORIGIN || $page.url.origin}{base}/models/{model.id}"
 			classNames="!border-none !shadow-none !py-0 !px-1 !rounded-md"
 		>
 			<div class="flex items-center gap-1.5 hover:underline">
 				<CarbonLink />Copy direct link to model
 			</div>
-		</CopyToClipBoardBtn>
+		</CopyToClipBoardBtn> -->
 	</div>
 
 	<button
 		class="{isActive
 			? 'bg-gray-100'
-			: 'bg-black text-white'} my-8 flex items-center rounded-full px-3 py-1"
+			: 'bg-black text-white'} my-0 mb-8 flex items-center rounded-full px-3 py-0"
 		disabled={isActive}
 		name="Activate model"
 		on:click|stopPropagation={() => {
