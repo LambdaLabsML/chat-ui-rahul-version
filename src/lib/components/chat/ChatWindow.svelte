@@ -432,7 +432,8 @@
 				</p>
 {:else}
 				<p>
-					<a href="https://lambdalabs.com/legal/terms-of-service" class="inline-flex items-center hover:underline">Privacy and Terms</a>
+					<!-- <a href="https://lambdalabs.com/legal/terms-of-service" class="inline-flex items-center hover:underline">Privacy and Terms</a> -->
+					Use of this service is subject to our <a href="https://cloud.lambdalabs.com/legal/privacy-policy" class="inline-flex items-center font-bold hover:underline">Privacy Policy</a> and <a href="https://cloud.lambdalabs.com/legal/terms-of-service" class="inline-flex items-center font-bold hover:underline">Terms of Service</a> including our <a href="https://cloud.lambdalabs.com/legal/terms-of-service#acceptable-use-policy" class="inline-flex items-center font-bold hover:underline">Acceptable Use Policy</a>.
 				</p>
 
 {/if}

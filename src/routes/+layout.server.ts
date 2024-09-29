@@ -10,8 +10,9 @@ import { ObjectId } from "mongodb";
 import type { ConvSidebar } from "$lib/types/ConvSidebar";
 import { allTools } from "$lib/server/tools";
 import { MetricsServer } from "$lib/server/metrics";
+import { error } from "@sveltejs/kit";
 
-export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
+export const load: LayoutServerLoad = async ({ url, locals, depends, request, cookies }) => {
 	depends(UrlDependency.ConversationList);
 
 	const settings = await collections.settings.findOne(authCondition(locals));
@@ -37,6 +38,45 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 		await collections.settings.updateOne(authCondition(locals), {
 			$set: { activeModel: defaultModel.id },
 		});
+	}
+
+	// // if (url.pathname == '/chatui/models//models/LiquidCloud'){
+
+	// // TODO: Hacky Authentication to protect our staging chatui
+	// 	// either check if the token is in the url and if so, save in localstorage
+	// 	// else, check if the token is in localstorage --> if so, verify, and do same 404 logic from there
+	// 	// think of loopholes and ensure this works
+
+	// const token = url.searchParams.get("token");
+	// if (token === null || token != "ughz-PuqkBkeR7ZM00NYdA"){
+	// 	// // reset the model to the default one
+	// 	// await collections.settings.updateOne(authCondition(locals), {
+	// 	// 	$set: { activeModel: defaultModel.id },
+	// 	// });
+	// 	// throw redirect(302, "/chatui/");
+	// 	error(404, {
+	// 		message: 'Not found'
+	// 	});
+	// }
+
+	const MASTER_TOKEN = "ughz-PuqkBkeR7ZM00NYdA";
+	const token = url.searchParams.get("token");
+
+	if (token) {
+		if (token == MASTER_TOKEN) {
+			cookies.set("auth_token", token, { path: "/", httpOnly: true, secure: true });
+		} else {
+			throw error(404, { message: "Not found" });
+		}
+	} else {
+		const cookie_token = cookies.get("auth_token");
+		if (!cookie_token) {
+			throw error(404, { message: "Not found" });
+		}
+		// else {
+		// if (cookie_token != MASTER_TOKEN){
+		// }
+		// }
 	}
 
 	const enableAssistants = env.ENABLE_ASSISTANTS === "true";

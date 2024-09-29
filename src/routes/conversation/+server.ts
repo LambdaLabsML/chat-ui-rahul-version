@@ -123,6 +123,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	);
 };
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ url }) => {
+	console.log("MAIN URL:", url);
+
 	redirect(302, `${base}/`);
 };

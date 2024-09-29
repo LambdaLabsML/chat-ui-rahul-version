@@ -12,6 +12,7 @@
 	import { base } from "$app/paths";
 	import { useSettingsStore } from "$lib/stores/settings";
 	import JSON5 from "json5";
+	import { page } from '$app/stores';
 
 	export let currentModel: Model;
 	export let models: Model[];
@@ -75,7 +76,11 @@
 						>
 							<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs text-gray-400" />
 							<div class="items-center">
-								<a class="inline-link" href="https://lambdalabs.com/blog/unveiling-hermes-3-the-first-fine-tuned-llama-3.1-405b-model-is-on-lambdas-cloud" target="_blank">Learn about Hermes 3, the first fine-tuned Llama 3.1 405B model</a>
+								{#if $page.url.pathname == '/chatui/models//models/LiquidCloud'}
+									<a class="inline-link" href="https://lambdalabs.com/blog/unveiling-hermes-3-the-first-fine-tuned-llama-3.1-405b-model-is-on-lambdas-cloud" target="_blank">Learn more about the Liquid AI Model (TODO: add blog post)</a>
+								{:else}
+									<a class="inline-link" href="https://lambdalabs.com/blog/unveiling-hermes-3-the-first-fine-tuned-llama-3.1-405b-model-is-on-lambdas-cloud" target="_blank">Learn about Hermes 3, the first fine-tuned Llama 3.1 405B model</a>
+								{/if}
 							</div>
 						</div>
 					</div>

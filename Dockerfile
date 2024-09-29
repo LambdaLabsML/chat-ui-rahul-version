@@ -41,7 +41,7 @@ RUN apt-get install gnupg curl -y
 # copy mongo from the other stage
 COPY --from=mongo /usr/bin/mongo* /usr/bin/
 
-ENV MONGODB_URL=mongodb://localhost:27017
+ENV MONGODB_URL=mongodb://172.17.0.2:27017
 RUN mkdir -p /data/db
 RUN chown -R 1000:1000 /data/db
 
