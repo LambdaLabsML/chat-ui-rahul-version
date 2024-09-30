@@ -76,8 +76,8 @@
 						>
 							<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs text-gray-400" />
 							<div class="items-center">
-								{#if $page.url.pathname == '/chatui/models//models/LiquidCloud'}
-									<a class="inline-link" href="https://lambdalabs.com/blog/unveiling-hermes-3-the-first-fine-tuned-llama-3.1-405b-model-is-on-lambdas-cloud" target="_blank">Learn more about the Liquid AI Model (TODO: add blog post)</a>
+								{#if currentModel.displayName == 'Liquid-AI-40B'}
+									<a class="inline-link" href="https://liquid.ai/liquid-foundation-models" target="_blank">Learn about Liquid Foundation Models (LFMs), a new generation of generative AI models built from first principles.</a>
 								{:else}
 									<a class="inline-link" href="https://lambdalabs.com/blog/unveiling-hermes-3-the-first-fine-tuned-llama-3.1-405b-model-is-on-lambdas-cloud" target="_blank">Learn about Hermes 3, the first fine-tuned Llama 3.1 405B model</a>
 								{/if}
@@ -98,6 +98,7 @@
 							</div>
 						</div>
 					</div>
+					{#if currentModel.displayName != 'Liquid-AI-40B'}
 					<div class="items-center gap-1.5 max-sm:text-smd mb-4">
 						<div
 							class="flex items-center gap-5 rounded-xl bg-gray-100 px-3 py-2 text-xs sm:text-sm
@@ -112,6 +113,7 @@
 							</div>
 						</div>
 					</div>
+					{/if}
 				</div>
 {:else}
 				<div>
