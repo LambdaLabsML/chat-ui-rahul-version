@@ -6,6 +6,9 @@ image:
 
 replicas: 3
 
+enable:
+  mongo: false
+
 domain: huggingface.co
 
 service:

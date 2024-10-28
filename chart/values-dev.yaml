@@ -1,0 +1,13 @@
+image:
+  repository: local
+
+enable:
+  mongo: true
+
+envVars:
+  MONGODB_URL: 'mongodb://mongodb'
+  OPENAI_API_KEY: 'SUPERSECRETAPIKEY'
+  ALLOW_INSECURE_COOKIES: 'true'
+  PUBLIC_ORIGIN: 'localhost:3000'
+
+domain: localhost
