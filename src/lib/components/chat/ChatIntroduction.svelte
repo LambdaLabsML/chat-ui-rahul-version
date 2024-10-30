@@ -98,6 +98,20 @@
 							</div>
 						</div>
 					</div>
+					<div class="items-center gap-1.5 max-sm:text-smd mb-4">
+						<div
+							class="flex items-center gap-5 rounded-xl bg-gray-100 px-3 py-2 text-xs sm:text-sm
+							{variant === 'dark'
+								? 'text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+								: 'text-gray-800 dark:bg-gray-100 dark:text-gray-600'}"
+						>
+							<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs text-gray-400" />
+							<div class="items-center">
+								Contact us for questions about our <a class="inline-link" href="https://lambdalabs.com/talk-to-an-engineer?primary_product_interest=Public+Inference+Endpoints" target="_blank">public inference endpoints</a> or if you want to explore
+								<a class="inline-link" href="https://lambdalabs.com/talk-to-an-engineer?primary_product_interest=Private+Inference+Endpoints" target="_blank">private endpoints</a>.
+							</div>
+						</div>
+					</div>
 					{#if currentModel.displayName != 'Liquid-AI-40B'}
 					<div class="items-center gap-1.5 max-sm:text-smd mb-4">
 						<div
