@@ -5,7 +5,7 @@ steps:
           image: docker:24.0.2
           volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-    environment:
+    env:
       DOCKER_USERNAME: "$DOCKER_USERNAME"
       DOCKER_PASSWORD: "$DOCKER_PASSWORD"
       ARTIFACTORY_URL: "https://artifactory.aws.lambdalabs.cloud/inference-core-dev"
