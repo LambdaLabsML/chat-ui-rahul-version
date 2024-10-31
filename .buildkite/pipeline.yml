@@ -1,0 +1,21 @@
+steps:
+  - label: "Build and Push Docker Image"
+    plugins:
+      - docker#v5.11.0:
+          image: docker:24.0.2
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_USERNAME: "$DOCKER_USERNAME"
+      DOCKER_PASSWORD: "$DOCKER_PASSWORD"
+      ARTIFACTORY_URL: "https://artifactory.aws.lambdalabs.cloud/inference-core-dev"
+      ARTIFACTORY_REPO: "inference-core-dev"
+      IMAGE_NAME: "lambda-frontend-chat-ui"
+      IMAGE_TAG: "latest"
+    commands:
+      - echo "Logging in to Docker Registry"
+      - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$ARTIFACTORY_URL"
+      - echo "Building Docker image"
+      - docker build -t "$ARTIFACTORY_URL/$ARTIFACTORY_REPO/$IMAGE_NAME:$IMAGE_TAG" .
+      - echo "Pushing Docker image to Artifactory"
+      - docker push "$ARTIFACTORY_URL/$ARTIFACTORY_REPO/$IMAGE_NAME:$IMAGE_TAG"
